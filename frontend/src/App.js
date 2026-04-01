@@ -12,8 +12,8 @@ const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [data, setData] = useState({ logs: [], content: [] });
   const [showModal, setShowModal] = useState(false);
-  const [showMailModal, setShowMailModal] = useState(false); // NEW
-  const [targetEmail, setTargetEmail] = useState(''); // NEW
+  const [showMailModal, setShowMailModal] = useState(false);
+  const [targetEmail, setTargetEmail] = useState('');
   const [newEntry, setNewEntry] = useState({ title: '', body: '', author: user || 'Admin' });
 
   const refreshData = async () => {
@@ -23,35 +23,78 @@ const App = () => {
         axios.get(`${BASE_URL}/api/audit/logs`)
       ]);
       setData({ content: cRes.data, logs: lRes.data });
-    } catch (e) { console.error("Syncing..."); }
+    } catch (e) { console.error("Server waking up..."); }
   };
 
   useEffect(() => { if (user) refreshData(); }, [user]);
 
   const handleLogout = () => { localStorage.clear(); setUser(null); };
 
+  // COMBINED LOGIC: FIXED PDF EXPORT
   const downloadPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Industrial CMS Pro - Audit Logs", 14, 15);
-    const tableRows = data.logs.map(log => [log.id, log.action, log.user, new Date(log.timestamp).toLocaleString()]);
-    doc.autoTable(["ID", "Action", "User", "Timestamp"], tableRows, { startY: 20 });
-    doc.save(`Logs_${Date.now()}.pdf`);
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Industrial CMS Pro - Audit Logs", 14, 22);
+      
+      const tableRows = data.logs.map(log => [
+        log.id, 
+        log.action, 
+        log.user, 
+        new Date(log.timestamp).toLocaleString()
+      ]);
+
+      doc.autoTable({
+        startY: 30,
+        head: [["ID", "Action", "User", "Timestamp"]],
+        body: tableRows,
+        headStyles: { fillColor: [67, 24, 255] },
+        theme: 'striped'
+      });
+
+      doc.save(`Audit_Report_${Date.now()}.pdf`);
+    } catch (err) {
+      console.error("PDF Export failed:", err);
+      alert("PDF Error: Ensure jspdf-autotable is installed correctly.");
+    }
   };
 
-  // --- NEW: EMAIL LOGS LOGIC ---
+  // COMBINED LOGIC: EMAIL DISPATCH
   const handleEmailLogs = async (e) => {
     e.preventDefault();
     try {
       await axios.post(`${BASE_URL}/api/audit/email`, { email: targetEmail });
-      alert("Logs have been dispatched to: " + targetEmail);
+      alert("Logs successfully dispatched to: " + targetEmail);
       setShowMailModal(false);
       setTargetEmail('');
     } catch (err) {
-      alert("Email service error. Check backend configuration.");
+      alert("Email Service Error. Check backend SMTP settings.");
     }
   };
 
-  if (!user) { /* ... keep login screen code same ... */ return null; }
+  const handleAddContent = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${BASE_URL}/api/content`, newEntry);
+      setShowModal(false);
+      setNewEntry({ title: '', body: '', author: user });
+      refreshData();
+    } catch (err) { alert("Backend is waking up. Please wait."); }
+  };
+
+  if (!user) {
+    return (
+      <div className="app-container" style={{justifyContent: 'center', alignItems: 'center'}}>
+        <div className="card" style={{textAlign: 'center', width: '350px'}}>
+          <Shield size={48} color="#4318ff" style={{marginBottom: '15px'}} />
+          <h2>CMS PRO LOGIN</h2>
+          <button className="btn-primary" style={{width: '100%', justifyContent: 'center'}} onClick={() => { localStorage.setItem('user', 'Admin'); setUser('Admin'); }}>
+            <Lock size={18}/> Login as Admin
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
@@ -65,7 +108,7 @@ const App = () => {
 
       <main className="main-content">
         <header className="header">
-          <h1>Industrial Hub <span style={{fontSize: '12px', color: '#05cd99'}}>● LIVE</span></h1>
+          <h1>Industrial Dashboard <span style={{fontSize: '12px', color: '#05cd99'}}>● LIVE</span></h1>
           <div style={{display: 'flex', gap: '10px'}}>
             {activeTab === 'audit' && (
               <>
@@ -73,11 +116,33 @@ const App = () => {
                 <button className="btn-secondary" onClick={downloadPDF}><Download size={18}/> Export PDF</button>
               </>
             )}
-            {activeTab === 'content' && <button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={18}/> Add Entry</button>}
+            {activeTab === 'content' && (
+              <button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={18}/> Add Entry</button>
+            )}
           </div>
         </header>
 
-        {/* --- Render Tabs (Dashboard, Content, Audit) as before --- */}
+        {/* Tab Content Rendering */}
+        {activeTab === 'dashboard' && (
+          <div className="stats-grid">
+            <div className="card"><h4>Total Entries</h4><h2>{data.content.length}</h2></div>
+            <div className="card"><h4>System Logs</h4><h2>{data.logs.length}</h2></div>
+            <div className="card"><h4>Cloud Status</h4><h2 style={{color: '#05cd99'}}>HEALTHY</h2></div>
+          </div>
+        )}
+
+        {activeTab === 'content' && (
+          <div className="content-grid">
+            {data.content.map((item) => (
+              <div key={item.id} className="card">
+                <h3>{item.title}</h3>
+                <p style={{color: '#a3aed0'}}>{item.body}</p>
+                <div style={{fontSize: '11px', color: '#4318ff', marginTop: '10px'}}>BY: {item.author.toUpperCase()}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {activeTab === 'audit' && (
           <div className="card">
             <h3>Recent Activity</h3>
@@ -91,7 +156,7 @@ const App = () => {
         )}
       </main>
 
-      {/* --- EMAIL MODAL --- */}
+      {/* MODAL: EMAIL REPORT */}
       {showMailModal && (
         <div className="modal-overlay">
           <div className="card" style={{width: '400px'}}>
@@ -107,7 +172,22 @@ const App = () => {
         </div>
       )}
 
-      {/* ... keep showModal code same ... */}
+      {/* MODAL: ADD CONTENT */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="card" style={{width: '450px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
+              <h3>Create Entry</h3>
+              <X onClick={()=>setShowModal(false)} cursor="pointer"/>
+            </div>
+            <form onSubmit={handleAddContent}>
+              <input className="input-field" placeholder="Title" required value={newEntry.title} onChange={e => setNewEntry({...newEntry, title: e.target.value})} />
+              <textarea className="input-field" style={{height: '120px'}} placeholder="Description" required value={newEntry.body} onChange={e => setNewEntry({...newEntry, body: e.target.value})} />
+              <button type="submit" className="btn-primary" style={{width: '100%', justifyContent: 'center'}}>Publish</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
