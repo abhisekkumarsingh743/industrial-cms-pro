@@ -8,66 +8,50 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// In-memory data
 let logs = [{ id: 1, action: "System Live", user: "System", timestamp: new Date() }];
-let content = [{ id: 1, title: "Initial Post", body: "Welcome to the industrial dashboard.", author: "Admin" }];
+let content = [{ id: 1, title: "Initial Post", body: "Welcome.", author: "Admin" }];
 
-// --- EMAIL CONFIGURATION ---
-// IMPORTANT: Use a Google "App Password", not your regular password.
+// --- FIXED EMAIL CONFIGURATION ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
         user: 'your-email@gmail.com', 
-        pass: 'your-app-password'     
+        pass: 'xxxx xxxx xxxx xxxx' // FIXED: Use 16-character App Password
     }
 });
-
-app.get('/', (req, res) => res.send("Industrial CMS API is Online"));
 
 app.get('/api/content', (req, res) => res.json(content));
 app.get('/api/audit/logs', (req, res) => res.json(logs));
 
 app.post('/api/content', (req, res) => {
     const { title, body, author } = req.body;
-    const newEntry = { 
-        id: content.length + 1, 
-        title, 
-        body, 
-        author: author || "Admin", 
-        timestamp: new Date() 
-    };
+    const newEntry = { id: content.length + 1, title, body, author: author || "Admin", timestamp: new Date() };
     content.push(newEntry);
-    logs.push({ 
-        id: logs.length + 1, 
-        action: `Created: ${title}`, 
-        user: author || "Admin", 
-        timestamp: new Date() 
-    });
+    logs.push({ id: logs.length + 1, action: `Created: ${title}`, user: author || "Admin", timestamp: new Date() });
     res.status(201).json(newEntry);
 });
 
-// --- EMAIL LOGS ENDPOINT ---
 app.post('/api/audit/email', async (req, res) => {
     const { email } = req.body;
-    
-    const logTable = logs.map(l => 
-        `[${new Date(l.timestamp).toLocaleString()}] ${l.action} by ${l.user}`
-    ).join('\n');
+    const logTable = logs.map(l => `[${new Date(l.timestamp).toLocaleString()}] ${l.action} by ${l.user}`).join('\n');
 
     const mailOptions = {
         from: '"Industrial CMS Pro" <your-email@gmail.com>',
         to: email,
-        subject: 'Industrial CMS - System Audit Logs Report',
-        text: `Attached below are the system audit logs:\n\n${logTable}\n\nGenerated at: ${new Date().toLocaleString()}`
+        subject: 'Industrial CMS - System Audit Logs',
+        text: `Requested logs:\n\n${logTable}`
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: "Email sent successfully" });
+        res.status(200).json({ message: "Email sent" });
     } catch (error) {
         console.error("Mail Error:", error);
-        res.status(500).json({ error: "Failed to send email" });
+        res.status(500).json({ error: "SMTP Failed" }); // Triggers the frontend error popup
     }
 });
 
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
