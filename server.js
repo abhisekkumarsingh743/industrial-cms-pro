@@ -13,7 +13,10 @@ let logs = [{ action: "System Start", user: "Admin", timestamp: new Date() }];
 let content = [{ title: "Welcome", body: "Live Server is active.", author: "System" }];
 
 // API Routes
-app.get('/api/content', (req, res) => res.json(content));
+// Add this at the top of your routes in server.js
+app.get('/', (req, res) => {
+    res.send("CMS Backend is running successfully!");
+});
 app.post('/api/content', (req, res) => {
     const entry = { ...req.body, timestamp: new Date() };
     content.push(entry);
