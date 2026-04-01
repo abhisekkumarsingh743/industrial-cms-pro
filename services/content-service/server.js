@@ -1,39 +1,38 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const redis = require('redis');
 const cors = require('cors');
-
 const app = express();
+
+// Use PORT 5000 for local, or the dynamic port Render provides
+const PORT = process.env.PORT || 5000;
+
+// Enable CORS so your Vercel frontend can talk to this backend
 app.use(cors());
 app.use(express.json());
 
-// 1. Correct Redis Connection
-const redisClient = redis.createClient({ url: 'redis://redis:6379' });
-redisClient.on('error', err => console.log('Redis Error', err));
-redisClient.connect();
+// Mock Data Storage (Resets when server restarts on Free Tier)
+let logs = [{ action: "System Initialized", user: "System", timestamp: new Date() }];
+let content = [{ title: "Welcome to CMS Pro", body: "Your live industrial dashboard is active.", author: "Admin" }];
 
-// 2. MongoDB Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://mongodb:27017/cms_db');
-
-const Content = mongoose.model('Content', new mongoose.Schema({
-    title: String, body: String, author: String, createdAt: { type: Date, default: Date.now }
-}));
-
-// 3. Functional Route
-app.post('/', async (req, res) => {
-    try {
-        const entry = await Content.create(req.body);
-        // Cache notification in Redis
-        await redisClient.set(`new_entry:${entry._id}`, entry.title);
-        res.status(201).json(entry);
-    } catch (err) {
-        res.status(500).json({ error: "Database or Redis failure" });
-    }
+// Routes
+app.get('/', (req, res) => {
+    res.send("Industrial CMS Backend is Online 🚀");
 });
 
-app.get('/', async (req, res) => {
-    const data = await Content.find().sort({ createdAt: -1 });
-    res.json(data);
+app.get('/api/content', (req, res) => {
+    res.json(content);
 });
 
-app.listen(4002, () => console.log('Content Service running on 4002'));
+app.post('/api/content', (req, res) => {
+    const entry = { ...req.body, timestamp: new Date() };
+    content.push(entry);
+    logs.push({ action: "Created Content", user: entry.author || "Admin", timestamp: new Date() });
+    res.status(201).json(entry);
+});
+
+app.get('/api/audit/logs', (req, res) => {
+    res.json(logs);
+});
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
