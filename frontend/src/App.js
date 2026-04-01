@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css';
 import { Layout, Database, Activity, Shield, LogOut, Plus, X, Lock, Download, Mail } from 'lucide-react';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // FIXED: Specific import for the plugin
+import autoTable from 'jspdf-autotable';
 
 const BASE_URL = "https://industrial-cms-pro.onrender.com";
 
