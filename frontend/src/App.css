@@ -126,3 +126,22 @@ body {
   border: 1px solid #e0e5f2;
   box-sizing: border-box;
 }
+
+/* Add this to your existing App.css */
+.btn-secondary {
+  background: #fff;
+  color: #4318ff;
+  border: 1px solid #4318ff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #f4f7fe;
+}

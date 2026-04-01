@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
-import { Layout, Database, Activity, Shield, LogOut, Plus, X, Lock } from 'lucide-react';
+import { Layout, Database, Activity, Shield, LogOut, Plus, X, Lock, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-// Replace with your actual Render URL
 const BASE_URL = "https://industrial-cms-pro.onrender.com";
 
 const App = () => {
@@ -13,7 +14,6 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [newEntry, setNewEntry] = useState({ title: '', body: '', author: user || 'Admin' });
 
-  // Fetch data from Render
   const refreshData = async () => {
     try {
       const [cRes, lRes] = await Promise.all([
@@ -21,18 +21,14 @@ const App = () => {
         axios.get(`${BASE_URL}/api/audit/logs`)
       ]);
       setData({ content: cRes.data, logs: lRes.data });
-    } catch (e) {
-      console.error("Backend waking up...");
-    }
+    } catch (e) { console.error("Backend waking up..."); }
   };
 
-  useEffect(() => {
-    if (user) refreshData();
-  }, [user]);
+  useEffect(() => { if (user) refreshData(); }, [user]);
 
   const handleLogout = () => {
     localStorage.clear();
-    setUser(null); // Triggers the login view
+    setUser(null);
   };
 
   const handleAddContent = async (e) => {
@@ -41,10 +37,30 @@ const App = () => {
       await axios.post(`${BASE_URL}/api/content`, newEntry);
       setShowModal(false);
       setNewEntry({ title: '', body: '', author: user });
-      refreshData(); // Updates UI immediately after successful post
-    } catch (err) {
-      alert("Server is still waking up. Please wait 10 seconds.");
-    }
+      refreshData();
+    } catch (err) { alert("Server is waking up. Please wait."); }
+  };
+
+  // --- PDF GENERATION LOGIC ---
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Industrial CMS Pro - Audit Logs", 14, 15);
+    
+    const tableColumn = ["ID", "Action", "User", "Timestamp"];
+    const tableRows = [];
+
+    data.logs.forEach(log => {
+      const logData = [
+        log.id,
+        log.action,
+        log.user,
+        new Date(log.timestamp).toLocaleString()
+      ];
+      tableRows.push(logData);
+    });
+
+    doc.autoTable(tableColumn, tableRows, { startY: 20 });
+    doc.save(`Audit_Logs_${new Date().getTime()}.pdf`);
   };
 
   if (!user) {
@@ -74,7 +90,18 @@ const App = () => {
       <main className="main-content">
         <header className="header">
           <h1>Industrial Dashboard <span style={{fontSize: '12px', color: '#05cd99'}}>● LIVE</span></h1>
-          {activeTab === 'content' && <button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={18}/> Add Entry</button>}
+          <div style={{display: 'flex', gap: '10px'}}>
+            {activeTab === 'audit' && (
+              <button className="btn-secondary" onClick={downloadPDF}>
+                <Download size={18}/> Export PDF
+              </button>
+            )}
+            {activeTab === 'content' && (
+              <button className="btn-primary" onClick={() => setShowModal(true)}>
+                <Plus size={18}/> Add Entry
+              </button>
+            )}
+          </div>
         </header>
 
         {activeTab === 'dashboard' && (
