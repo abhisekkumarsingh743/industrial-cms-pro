@@ -1,38 +1,127 @@
-.App {
-  text-align: center;
+/* General Reset */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f4f7fe;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Sidebar Styling */
+.sidebar {
+  width: 260px;
+  background: #fff;
+  padding: 30px;
   display: flex;
   flex-direction: column;
+  border-right: 1px solid #e0e5f2;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.nav-item {
+  padding: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  color: #a3aed0;
+}
+
+.nav-item.active {
+  background: #4318ff;
+  color: #fff;
+}
+
+.nav-item:hover:not(.active) {
+  background: #f4f7fe;
+  color: #4318ff;
+}
+
+/* Dashboard & Layout */
+.main-content {
+  flex: 1;
+  padding: 40px;
+}
+
+.card {
+  background: #fff;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Buttons & Inputs */
+.btn-primary {
+  background: #4318ff;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-logout {
+  margin-top: auto;
+  border: 1px solid #ee5d50;
+  color: #ee5d50;
+  background: transparent;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #e0e5f2;
+  box-sizing: border-box;
+}
+
+/* Modals & Login */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  z-index: 1000;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.login-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
