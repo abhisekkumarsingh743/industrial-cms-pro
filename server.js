@@ -1,34 +1,50 @@
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
-
 const app = express();
-const PORT = 5000;
 
+// Use dynamic port for Render or 5000 for local
+const PORT = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Essential for processing POST requests
 
-// Mock Data (Since we are bypassing Docker MongoDB for now)
-let logs = [{ action: "System Start", user: "Admin", timestamp: new Date() }];
-let content = [{ title: "Welcome", body: "Live Server is active.", author: "System" }];
+// In-memory data (resets on server restart)
+let logs = [{ id: 1, action: "System Live", user: "System", timestamp: new Date() }];
+let content = [{ id: 1, title: "Initial Post", body: "Welcome to the live dashboard.", author: "Admin" }];
 
-// API Routes
-// Add this at the top of your routes in server.js
-app.get('/', (req, res) => {
-    res.send("CMS Backend is running successfully!");
-});
-app.post('/api/content', (req, res) => {
-    const entry = { ...req.body, timestamp: new Date() };
-    content.push(entry);
-    logs.push({ action: "Added Entry", user: entry.author, timestamp: new Date() });
-    res.status(201).json(entry);
-});
+// Routes
+app.get('/', (req, res) => res.send("Industrial CMS Backend is Online 🚀"));
+
+app.get('/api/content', (req, res) => res.json(content));
 
 app.get('/api/audit/logs', (req, res) => res.json(logs));
 
-// Serve Frontend (If you build it)
-app.use(express.static(path.join(__dirname, 'frontend/build')));
+app.post('/api/content', (req, res) => {
+    const { title, body, author } = req.body;
+    
+    if (!title || !body) {
+        return res.status(400).json({ error: "Title and Body are required" });
+    }
 
-app.listen(PORT, () => {
-    console.log(`🚀 Live Server running at http://localhost:${PORT}`);
+    const newEntry = { 
+        id: content.length + 1, 
+        title, 
+        body, 
+        author: author || "Admin", 
+        timestamp: new Date() 
+    };
+
+    content.push(newEntry);
+    
+    logs.push({ 
+        id: logs.length + 1,
+        action: `Created: ${title}`, 
+        user: author || "Admin", 
+        timestamp: new Date() 
+    });
+    
+    res.status(201).json(newEntry);
 });
+
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

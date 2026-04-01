@@ -1,13 +1,17 @@
-/* General Reset */
+/* Reset and Base Styles */
 body {
   margin: 0;
   padding: 0;
   background-color: #f4f7fe;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-/* Sidebar Styling */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
 .sidebar {
   width: 260px;
   background: #fff;
@@ -15,9 +19,10 @@ body {
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e0e5f2;
-  height: 100vh;
   position: sticky;
   top: 0;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
 .nav-item {
@@ -29,7 +34,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: all 0.3s ease;
+  transition: 0.3s;
   color: #a3aed0;
 }
 
@@ -38,17 +43,20 @@ body {
   color: #fff;
 }
 
-.nav-item:hover:not(.active) {
-  background: #f4f7fe;
-  color: #4318ff;
-}
-
-/* Dashboard & Layout */
+/* Main Content */
 .main-content {
   flex: 1;
   padding: 40px;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+/* UI Elements */
 .card {
   background: #fff;
   padding: 25px;
@@ -68,7 +76,7 @@ body {
   gap: 20px;
 }
 
-/* Buttons & Inputs */
+/* Buttons */
 .btn-primary {
   background: #4318ff;
   color: #fff;
@@ -96,16 +104,7 @@ body {
   gap: 8px;
 }
 
-.input-field {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  border: 1px solid #e0e5f2;
-  box-sizing: border-box;
-}
-
-/* Modals & Login */
+/* Modals */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -119,9 +118,11 @@ body {
   z-index: 1000;
 }
 
-.login-container {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.input-field {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #e0e5f2;
+  box-sizing: border-box;
 }
