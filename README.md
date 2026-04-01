@@ -1,4 +1,4 @@
-Clone the Repo: git clone [your-repo-link].
+Clone the Repo
 
 Local Setup:
 

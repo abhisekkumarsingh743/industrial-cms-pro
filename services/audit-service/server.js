@@ -12,7 +12,6 @@ const LogSchema = new mongoose.Schema({
 });
 const Log = mongoose.model('Log', LogSchema);
 
-// Requirement 8: Cron Job
 cron.schedule('0 0 * * *', () => {
     console.log("⏰ Daily Report Generated: System Activity Logged.");
 });

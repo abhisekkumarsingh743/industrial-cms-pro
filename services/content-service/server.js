@@ -2,18 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
-// Use PORT 5000 for local, or the dynamic port Render provides
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS so your Vercel frontend can talk to this backend
 app.use(cors());
 app.use(express.json());
 
-// Mock Data Storage (Resets when server restarts on Free Tier)
 let logs = [{ action: "System Initialized", user: "System", timestamp: new Date() }];
 let content = [{ title: "Welcome to CMS Pro", body: "Your live industrial dashboard is active.", author: "Admin" }];
 
-// Routes
 app.get('/', (req, res) => {
     res.send("Industrial CMS Backend is Online 🚀");
 });

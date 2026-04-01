@@ -14,7 +14,7 @@ services:
     build: ./frontend
     container_name: frontend
     environment:
-      - DANGEROUSLY_DISABLE_HOST_CHECK=true # Fixes "Invalid Host header"
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
     ports: ["3000:3000"]
 
   auth-service:
