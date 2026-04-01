@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 // POINTING TO THE LIVE SERVER (Step 3)
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://industrial-cms-pro.onrender.com";
 
 const App = () => {
   const [user, setUser] = useState(localStorage.getItem('user') || 'Admin');
