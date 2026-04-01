@@ -1,0 +1,27 @@
+{
+	"info": {
+		"name": "Industrial CMS Pro",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Content",
+			"request": {
+				"method": "GET",
+				"url": "https://industrial-cms-pro.onrender.com/api/content"
+			}
+		},
+		{
+			"name": "Add Entry",
+			"request": {
+				"method": "POST",
+				"body": {
+					"mode": "raw",
+					"raw": "{\"title\": \"Test\", \"body\": \"Testing Postman\", \"author\": \"Admin\"}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": "https://industrial-cms-pro.onrender.com/api/content"
+			}
+		}
+	]
+}
