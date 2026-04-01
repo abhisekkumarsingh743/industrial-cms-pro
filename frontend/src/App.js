@@ -9,7 +9,7 @@ import {
 const BASE_URL = "https://industrial-cms-pro.onrender.com";
 
 const App = () => {
-  const [user, setUser] = useState(localStorage.getItem('user') || 'Admin');
+ const [user] = useState(localStorage.getItem('user') || 'Admin');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [data, setData] = useState({ logs: [], content: [] });
   const [showModal, setShowModal] = useState(false);
