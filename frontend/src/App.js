@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
-import { Shield, Lock, Download, Mail, X, Activity, Database, LogOut } from 'lucide-react';
+import { Shield, Lock, Download, Mail, X, Activity, Database, LogOut, Plus } from 'lucide-react';
 import jsPDF from 'jspdf';
-// --- FIXED PDF IMPORT ---
-import autoTable from 'jspdf-autotable'; 
+import autoTable from 'jspdf-autotable'; // FIXED: Proper import for plugin
 
 const BASE_URL = "https://industrial-cms-pro.onrender.com";
 
@@ -19,30 +18,30 @@ const App = () => {
     if (user) {
       axios.get(`${BASE_URL}/api/audit/logs`)
         .then(res => setLogs(res.data))
-        .catch(err => console.error("Server waking up..."));
+        .catch(err => console.error("Syncing with backend..."));
     }
   }, [user]);
 
-  // --- FIXED PDF EXPORT LOGIC ---
+  // FIXED PDF LOGIC: Uses autoTable(doc, ...) directly
   const downloadPDF = () => {
     try {
       const doc = new jsPDF();
-      doc.text("Industrial CMS Audit Report", 14, 15);
+      doc.setFontSize(18);
+      doc.text("Industrial CMS Audit Report", 14, 20);
       
-      const body = logs.map(l => [l.id, l.action, l.user, new Date(l.timestamp).toLocaleString()]);
-      
+      const tableRows = logs.map(l => [l.id, l.action, l.user, new Date(l.timestamp).toLocaleString()]);
+
       autoTable(doc, {
-        startY: 20,
+        startY: 25,
         head: [['ID', 'Action', 'User', 'Timestamp']],
-        body: body,
-        theme: 'striped',
-        headStyles: { fillColor: [67, 24, 255] }
+        body: tableRows,
+        headStyles: { fillColor: [67, 24, 255] },
+        theme: 'striped'
       });
 
-      doc.save("audit_report.pdf");
+      doc.save(`Audit_Log_${Date.now()}.pdf`);
     } catch (err) {
-      console.error("PDF generation failed:", err);
-      alert("Error: Ensure jspdf-autotable is installed."); //
+      alert("PDF Error: Ensure jspdf-autotable is installed correctly.");
     }
   };
 
@@ -50,20 +49,21 @@ const App = () => {
     e.preventDefault();
     try {
       await axios.post(`${BASE_URL}/api/audit/email`, { email: targetEmail });
-      alert("Email sent successfully!");
+      alert("Logs dispatched to " + targetEmail);
       setShowMailModal(false);
     } catch (err) {
-      alert("Email Service Error. Check backend SMTP settings."); //
+      alert("Email Service Error. Check backend SMTP settings.");
     }
   };
 
+  // ELITE LOGIN DESIGN
   if (!user) {
     return (
-      <div className="login-screen">
+      <div className="login-container">
         <div className="login-card">
-          <Shield size={48} color="#4318ff" />
-          <h2>CMS PRO LOGIN</h2>
-          <button className="btn-primary" onClick={() => { localStorage.setItem('user', 'Admin'); setUser('Admin'); }}>
+          <div className="icon-badge"><Shield size={40} color="#4318ff" /></div>
+          <h1>CMS PRO LOGIN</h1>
+          <button className="login-btn" onClick={() => { localStorage.setItem('user', 'Admin'); setUser('Admin'); }}>
             <Lock size={18} /> Login as Admin
           </button>
         </div>
@@ -72,43 +72,49 @@ const App = () => {
   }
 
   return (
-    <div className="app-container">
-      <nav className="sidebar">
-        <div className="brand"><Shield /> CMS PRO</div>
-        <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><Database size={18}/> Dashboard</div>
-        <div className={`nav-item ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}><Activity size={18}/> Audit Logs</div>
-        <button className="btn-logout" onClick={() => { localStorage.clear(); setUser(null); }}><LogOut size={16}/> Logout</button>
-      </nav>
+    <div className="dashboard-layout">
+      <aside className="sidebar">
+        <div className="sidebar-brand"><Shield /> CMS PRO</div>
+        <nav>
+          <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><Database size={18}/> Overview</div>
+          <div className={`nav-item ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}><Activity size={18}/> Audit Logs</div>
+        </nav>
+        <button className="logout-link" onClick={() => { localStorage.clear(); setUser(null); }}><LogOut size={16}/> Sign Out</button>
+      </aside>
 
-      <main className="main-content">
-        <header className="header">
-          <h1>Industrial Dashboard</h1>
+      <main className="main-stage">
+        <header className="main-header">
+          <h1>Industrial Dashboard <span className="live-indicator">● LIVE</span></h1>
           {activeTab === 'audit' && (
-            <div className="header-actions">
-              <button className="btn-secondary" onClick={() => setShowMailModal(true)}><Mail size={18}/> Email Logs</button>
-              <button className="btn-secondary" onClick={downloadPDF}><Download size={18}/> Export PDF</button>
+            <div className="action-bar">
+              <button className="action-btn" onClick={() => setShowMailModal(true)}><Mail size={18}/> Email Logs</button>
+              <button className="action-btn" onClick={downloadPDF}><Download size={18}/> Export PDF</button>
             </div>
           )}
         </header>
 
-        <div className="card">
-          <h3>Recent Activity</h3>
-          {logs.map(log => (
-            <div key={log.id} className="log-row">
-              <span><strong>{log.action}</strong> by {log.user}</span>
-              <span className="timestamp">{new Date(log.timestamp).toLocaleTimeString()}</span>
+        <section className="content-area">
+          <div className="glass-card">
+            <h3>Recent Audit Activity</h3>
+            <div className="log-list">
+              {logs.map(log => (
+                <div key={log.id} className="log-entry">
+                  <span><strong>{log.action}</strong> by {log.user}</span>
+                  <span className="timestamp">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        </section>
       </main>
 
       {showMailModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <div className="modal-header"><h3>Email Report</h3><X onClick={()=>setShowMailModal(false)} cursor="pointer"/></div>
+        <div className="overlay">
+          <div className="modal">
+            <div className="modal-head"><h3>Email Audit Report</h3><X onClick={()=>setShowMailModal(false)} cursor="pointer"/></div>
             <form onSubmit={handleEmailLogs}>
-              <input className="input-field" type="email" placeholder="Recipient Email" required value={targetEmail} onChange={e => setTargetEmail(e.target.value)} />
-              <button type="submit" className="btn-primary">Send Logs</button>
+              <input className="modal-input" type="email" placeholder="Recipient Gmail" required value={targetEmail} onChange={e => setTargetEmail(e.target.value)} />
+              <button type="submit" className="login-btn">Send Logs</button>
             </form>
           </div>
         </div>
